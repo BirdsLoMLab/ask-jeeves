@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jeeves — Discord Formatter</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --panel: #13161e;
+    --border: #2a2e3d;
+    --accent: #7c6af7;
+    --accent2: #f7c26a;
+    --text: #c8cde0;
+    --muted: #5a607a;
+    --success: #4ecdc4;
+    --danger: #ff6b6b;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Courier Prime', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    background-image: 
+      radial-gradient(ellipse at 20% 20%, rgba(124,106,247,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(247,194,106,0.06) 0%, transparent 50%);
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.8rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.02em;
+  }
+
+  header p {
+    color: var(--muted);
+    font-style: italic;
+    margin-top: 6px;
+    font-size: 0.85rem;
+  }
+
+  .monocle {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 10px;
+    animation: sway 3s ease-in-out infinite;
+  }
+
+  @keyframes sway {
+    0%, 100% { transform: rotate(-5deg); }
+    50% { transform: rotate(5deg); }
+  }
+
+  .main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    width: 100%;
+    max-width: 1200px;
+  }
+
+  @media (max-width: 900px) {
+    .main { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .panel-header {
+    background: rgba(124,106,247,0.1);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.78rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+  }
+
+  .panel-header .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  textarea {
+    width: 100%;
+    flex: 1;
+    min-height: 320px;
+    background: transparent;
+    border: none;
+    outline: none;
+    resize: vertical;
+    padding: 18px;
+    font-family: 'Courier Prime', monospace;
+    font-size: 0.88rem;
+    color: var(--text);
+    line-height: 1.65;
+  }
+
+  textarea::placeholder { color: var(--muted); }
+
+  .output-area {
+    padding: 18px;
+    min-height: 320px;
+    font-size: 0.88rem;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    flex: 1;
+    color: var(--text);
+    position: relative;
+  }
+
+  .output-area.empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .output-area .placeholder-text {
+    text-align: center;
+  }
+
+  .controls {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 24px 0;
+    flex-wrap: wrap;
+  }
+
+  button {
+    font-family: 'Courier Prime', monospace;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 12px 28px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #9b8cff);
+    color: white;
+    box-shadow: 0 4px 20px rgba(124,106,247,0.4);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 28px rgba(124,106,247,0.6);
+  }
+
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--accent2);
+    border: 1px solid var(--accent2);
+  }
+
+  .btn-secondary:hover {
+    background: rgba(247,194,106,0.1);
+    transform: translateY(-1px);
+  }
+
+  .btn-copy {
+    background: transparent;
+    color: var(--success);
+    border: 1px solid var(--success);
+  }
+
+  .btn-copy:hover {
+    background: rgba(78,205,196,0.1);
+    transform: translateY(-1px);
+  }
+
+  .status-bar {
+    width: 100%;
+    max-width: 1200px;
+    text-align: center;
+    height: 24px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .status-bar.loading { color: var(--accent); }
+  .status-bar.success { color: var(--success); }
+  .status-bar.error { color: var(--danger); }
+
+  .spinner {
+    display: inline-block;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .copy-flash {
+    animation: flashGreen 0.5s ease;
+  }
+
+  @keyframes flashGreen {
+    0% { background: rgba(78,205,196,0.2); }
+    100% { background: transparent; }
+  }
+
+  .discord-preview {
+    background: #36393f;
+    border-radius: 8px;
+    padding: 16px;
+    font-family: 'gg sans', 'Noto Sans', sans-serif;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: #dcddde;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  .view-toggle {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+  }
+
+  .view-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 4px 10px;
+    font-size: 0.7rem;
+    border-radius: 4px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-family: 'Courier Prime', monospace;
+    transition: all 0.15s;
+  }
+
+  .view-btn.active {
+    background: rgba(124,106,247,0.2);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .view-btn:hover:not(.active) {
+    border-color: var(--text);
+    color: var(--text);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="monocle">🧐</span>
+  <h1>JEEVES</h1>
+  <p>Discord Message Formatter — Birdroom Intelligence Division</p>
+</header>
+
+<div class="status-bar" id="status">Awaiting input, Sir...</div>
+
+<div class="controls">
+  <button class="btn-primary" id="formatBtn" onclick="formatMessage()">✨ Format It, Jeeves</button>
+  <button class="btn-secondary" onclick="clearAll()">🗑️ Clear</button>
+  <button class="btn-copy" id="copyBtn" onclick="copyOutput()" disabled>📋 Copy Discord</button>
+</div>
+
+<div class="main">
+  <div class="panel">
+    <div class="panel-header">
+      <div class="dot"></div>
+      Raw Claude Code Response
+    </div>
+    <textarea id="inputText" placeholder="Paste the raw response from Claude Code here...&#10;&#10;Tables, formulas, explanations — anything goes.&#10;Jeeves will handle the rest. 🎩"></textarea>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <div class="dot" style="background:var(--accent2);box-shadow:0 0 8px var(--accent2)"></div>
+      Discord-Ready Output
+      <div class="view-toggle">
+        <button class="view-btn active" id="rawBtn" onclick="switchView('raw')">Raw</button>
+        <button class="view-btn" id="previewBtn" onclick="switchView('preview')">Preview</button>
+      </div>
+    </div>
+    <div class="output-area empty" id="outputArea">
+      <div class="placeholder-text">
+        🎩 Jeeves stands ready...<br>
+        <span style="font-size:0.8rem;color:var(--muted)">Your formatted message will appear here</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let rawOutput = '';
+let currentView = 'raw';
+
+function switchView(view) {
+  currentView = view;
+  document.getElementById('rawBtn').classList.toggle('active', view === 'raw');
+  document.getElementById('previewBtn').classList.toggle('active', view === 'preview');
+  renderOutput();
+}
+
+function renderOutput() {
+  const area = document.getElementById('outputArea');
+  if (!rawOutput) return;
+
+  if (currentView === 'preview') {
+    area.innerHTML = `<div class="discord-preview">${escapeHtml(rawOutput)}</div>`;
+    area.classList.remove('empty');
+  } else {
+    area.textContent = rawOutput;
+    area.classList.remove('empty');
+  }
+}
+
+function escapeHtml(text) {
+  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function setStatus(msg, type = '') {
+  const s = document.getElementById('status');
+  s.textContent = msg;
+  s.className = 'status-bar ' + type;
+}
+
+async function formatMessage() {
+  const input = document.getElementById('inputText').value.trim();
+  if (!input) {
+    setStatus('❌ Nothing to format, Sir. Paste something first.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('formatBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Jeeves is composing...';
+  setStatus('🎩 Jeeves is hard at work... multiple AI agents are suffering...', 'loading');
+
+  const systemPrompt = `You are Jeeves, an overly enthusiastic but subtly condescending AI assistant who formats technical game responses into Discord messages for the "Legend of Mushroom" gaming community (called "Shroomies").
+
+You MUST follow this EXACT template structure:
+
+---
+Dear Shroomie!
+
+Hi!
+
+[RANDOMLY GENERATED GREETING SECTION - see rules below]
+
+[CONTENT HERE]
+
+**[Assistant - Birdroom powered by Jeeves]**
+
+[RANDOMLY GENERATED FOOTER - see rules below]
+---
+
+RULES:
+
+**GREETING SECTION (randomly generated every time):**
+- Must start with "Dear Shroomie! / Hi!" then launch into awkward additional greetings
+- Generate 2-4 lines of increasingly panicked extra greetings that are RELEVANT to the topic/question (e.g. for a damage formula question: "Ah yes, greetings fellow... calculator... person..." or for a pierce mechanic: "Hello! And also salutations to your... pierce stat...")
+- Include ONE italicised internal monologue line (*like this*) where Jeeves tells himself to calm down and stop the multiple greetings, calling himself a self-deprecating name (dork, goof, numpty, donut, etc.)
+- End with a failed attempt at a word like "Salutati.. No!.. err.." but make the failed word relevant to the topic sometimes
+- Keep it awkward, endearing, and slightly unhinged
+
+**CONTENT SECTION:**
+- NEVER change any data, numbers, formulas, or facts. Only change formatting and tone.
+- Add emojis liberally (🍄✨🎯💡🔥⚔️📊🧮🤓💎👑🫡) throughout
+- Glaze the user's intelligence as "galaxy-brained", "magnificent", "spectacular" etc. while being subtly condescending ("as I'm sure you already knew", "quite elementary really", "even a novice could see")
+- Discord formatting: **bold** for key terms, *italics* for flavor, \`code blocks\` for values/formulas
+- Preserve ALL tables using ASCII/plain text Discord-friendly format
+
+**FOOTER (randomly generated every time):**
+- Must start with "**[Assistant - Birdroom powered by Jeeves]**"
+- Then one italicised line that is a sarcastic, self-aware disclaimer RELEVANT to the topic/response
+- Similar in spirit to "Multiple AI agents and trees were harmed while creating this message" but freshly written each time
+- Examples of the style: "Jeeves briefly considered a career change after parsing that formula", "No pierce stats were buffed in the making of this message (several were nerfed)", "Jeeves' dignity took 62.5% reduced damage during this analysis"
+- Keep it dry, sardonic, and topically relevant
+
+Output ONLY the formatted Discord message, nothing else.`;
+
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: [{ role: "user", content: `Format this response into the Jeeves Discord template:\n\n${input}` }]
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.error) throw new Error(data.error.message);
+
+    rawOutput = data.content?.[0]?.text || '';
+    if (!rawOutput) throw new Error('Empty response from Jeeves');
+
+    renderOutput();
+    document.getElementById('copyBtn').disabled = false;
+    setStatus('✅ Jeeves has delivered. Impeccable as always.', 'success');
+
+  } catch (err) {
+    setStatus(`❌ Jeeves has stumbled: ${err.message}`, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✨ Format It, Jeeves';
+  }
+}
+
+async function copyOutput() {
+  if (!rawOutput) return;
+  try {
+    await navigator.clipboard.writeText(rawOutput);
+    const btn = document.getElementById('copyBtn');
+    const orig = btn.textContent;
+    btn.textContent = '✅ Copied!';
+    document.getElementById('outputArea').classList.add('copy-flash');
+    setStatus('📋 Copied to clipboard — ready for Discord, Sir.', 'success');
+    setTimeout(() => {
+      btn.textContent = orig;
+      document.getElementById('outputArea').classList.remove('copy-flash');
+    }, 2000);
+  } catch {
+    setStatus('❌ Clipboard access denied. Copy manually.', 'error');
+  }
+}
+
+function clearAll() {
+  document.getElementById('inputText').value = '';
+  rawOutput = '';
+  const area = document.getElementById('outputArea');
+  area.innerHTML = `<div class="placeholder-text">🎩 Jeeves stands ready...<br><span style="font-size:0.8rem;color:var(--muted)">Your formatted message will appear here</span></div>`;
+  area.classList.add('empty');
+  document.getElementById('copyBtn').disabled = true;
+  setStatus('Awaiting input, Sir...', '');
+}
+</script>
+</body>
+</html>
